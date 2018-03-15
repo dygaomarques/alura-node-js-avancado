@@ -1,2 +1,5 @@
 node_modules/
+util/**/*.jpg
+uploads/
 package-lock.json
+.DS_Store

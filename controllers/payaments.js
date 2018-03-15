@@ -14,6 +14,20 @@ module.exports = ( app ) => {
   
   });
 
+  /* Read payament by id */
+  app.get( '/payaments/payament/:id', async ( req, res ) => {
+
+    console.log('Requisição recebida!');
+    
+    /* Create an conection with database */
+    let connection = app.services.ConnectionFactory.connection();
+
+    /* Read the payaments from database */
+    new app.dao.PayamentsDao( connection ).readByID( req.params.id )
+      .then( ( result ) => res.send( result ) );
+  
+  });
+
   /* Save payament */
   app.post( '/payaments/payament', ( req, res ) => {
 

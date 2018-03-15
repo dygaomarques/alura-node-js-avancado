@@ -1,42 +1,94 @@
+/**
+ * Class to handle payaments CRUD
+ */
 class PayamentsDao {
 
   constructor( connection ) {
 
+    /* Receiving the connection with database */
     this._connection = connection;
 
   }
 
+  /**
+   * Save the payament to DataBase
+   * 
+   * @param {json} data the payament
+   * 
+   * @returns {promise} payament save status
+   */
   save( data ) {
     
+    /* Returning the promise */
     return new Promise( ( resolve, reject ) => {
 
+      /* Executing the query */
       this._connection.query( "INSERT INTO payaments SET ?", data, ( error, result ) => {
 
-        if ( error ) {
-          return reject( error );
-        }
+        /* Return the errors */
+        if ( error ) { return reject( error ) }
 
+        /* Return the result of the query */
         return resolve( result );
 
       });
-
 
     });
 
   }
 
+  /**
+   * Read a payament from the database
+   * 
+   * @returns {promise} payaments list
+   */
   read() {
     
+    /* The SQL Syntrax */
     let sql = 'SELECT * FROM payaments';
     
+    /* Return the promise */
     return new Promise( ( resolve, reject ) => {
       
+      /* Executing the query */
       this._connection.query(sql, ( error, results, fields ) => {
-        if( error ) {
-          return reject( error.stack );
-        }
-  
+        
+        /* Return the errors */
+        if( error ) { return reject( error.stack ) }
+        
+        /* Rerturn the payaments list */
         return resolve( results );
+
+      });
+
+    });
+
+  }
+
+  /**
+   * Read a payament from the database
+   * 
+   * @param {int} id payament ID
+   * 
+   * @returns {promise} payaments list
+   */
+  readByID( id ) {
+    
+    /* The SQL Syntrax */
+    let sql = 'SELECT * FROM payaments WHERE id = ?';
+    
+    /* Return the promise */
+    return new Promise( ( resolve, reject ) => {
+      
+      /* Executing the query */
+      this._connection.query(sql, id, ( error, results, fields ) => {
+        
+        /* Return the errors */
+        if( error ) { return reject( error.stack ) }
+        
+        /* Rerturn the payaments list */
+        return resolve( results[0] );
+        
       });
 
     });
@@ -64,7 +116,6 @@ class PayamentsDao {
         return resolve( result );
 
       });
-
 
     });
 

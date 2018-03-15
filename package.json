@@ -23,6 +23,7 @@
     "knex": "^0.14.4",
     "mysql": "^2.15.0",
     "restify": "^6.3.4",
-    "restify-clients": "^2.0.0"
+    "restify-clients": "^2.0.0",
+    "soap": "^0.23.0"
   }
 }
