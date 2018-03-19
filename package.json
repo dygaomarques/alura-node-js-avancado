@@ -21,6 +21,7 @@
     "express": "^4.16.2",
     "express-validator": "^5.0.2",
     "knex": "^0.14.4",
+    "memcached": "^2.2.2",
     "mysql": "^2.15.0",
     "restify": "^6.3.4",
     "restify-clients": "^2.0.0",

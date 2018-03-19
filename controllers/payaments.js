@@ -4,7 +4,8 @@ module.exports = ( app ) => {
   app.get( '/payaments', async ( req, res ) => {
 
     console.log('Requisição recebida!');
-    
+    /* Get objects from cache */
+    new app.services.MemcachedFactory().getCache(  )
     /* Create an conection with database */
     let connection = app.services.ConnectionFactory.connection();
 
@@ -18,13 +19,41 @@ module.exports = ( app ) => {
   app.get( '/payaments/payament/:id', async ( req, res ) => {
 
     console.log('Requisição recebida!');
-    
-    /* Create an conection with database */
-    let connection = app.services.ConnectionFactory.connection();
+    let id = req.params.id;
 
-    /* Read the payaments from database */
-    new app.dao.PayamentsDao( connection ).readByID( req.params.id )
-      .then( ( result ) => res.send( result ) );
+    /* Get objects from the cache */
+    new app.services.MemcachedFactory().getCache(id)
+      .then((result) => {
+        res.send( result );
+      })
+      .catch((err) => {
+        console.log(err);
+        /* Create an conection with database */
+        let connection = app.services.ConnectionFactory.connection();
+
+        /* Read the payaments from database */
+        new app.dao.PayamentsDao( connection ).readByID( id )
+          .then((result) => {
+            if(!result) {
+              console.log('Payament not founded.');
+              res.status(404).send({
+                message: "Payament doesn't exists."
+              });
+              return;
+            }
+            res.send(result);
+
+            /* Creating a cache for the payament */
+            new app.services.MemcachedFactory().setCache(id, result)
+            .then((result) => {
+              console.log('Cache of payament: ' + id + ' created!');
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          });
+
+      });
   
   });
 
@@ -70,6 +99,18 @@ module.exports = ( app ) => {
 
           /* Defining the payament id */
           payament.id = result.insertId;
+
+          /* Creating a cache for the payament */
+          new app.services.MemcachedFactory().setCache(payament.id, payament)
+          .then((result) => {
+            console.log(payament.id);
+            console.log('Cache of payament: ' + payament.id + ' created!');
+            payament.cache = 'TRUE';
+          })
+          .catch((err) => {
+            console.log(err);
+            payament.cache = 'FALSE';
+          });
 
           /* Authorizing the card */
           if ( payament.method == 'card' ) {
@@ -164,6 +205,7 @@ module.exports = ( app ) => {
   /* Update payament */
   app.put( '/payaments/payament/:id', ( req, res ) => {
 
+    let payament = {};
     payament.status = 'CONFIRMED';
     payament.id = req.params.id;
 
@@ -173,6 +215,11 @@ module.exports = ( app ) => {
     new app.dao.PayamentsDao( connection ).update( payament )
       .then(( data ) => {
         let message = `Payament ${ payament.id } confirmed!`;
+
+        /* Deleting a key from the cache */
+        new app.services.MemcachedFactory().delCache( payament.id )
+          .then((result) => console.log(result))
+          .catch((err) => console.log(err));
 
         console.log({
           message:  message,
