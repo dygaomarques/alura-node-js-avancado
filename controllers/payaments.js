@@ -3,7 +3,8 @@ module.exports = ( app ) => {
   /* Read payaments */
   app.get( '/payaments', async ( req, res ) => {
 
-    console.log('Requisição recebida!');
+    new app.services.LoggerFactory().log('info', 'Requisição recebida!');
+
     /* Get objects from cache */
     new app.services.MemcachedFactory().getCache(  )
     /* Create an conection with database */
@@ -18,7 +19,6 @@ module.exports = ( app ) => {
   /* Read payament by id */
   app.get( '/payaments/payament/:id', async ( req, res ) => {
 
-    console.log('Requisição recebida!');
     let id = req.params.id;
 
     /* Get objects from the cache */
@@ -26,8 +26,8 @@ module.exports = ( app ) => {
       .then((result) => {
         res.send( result );
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(( err ) => {
+    
         /* Create an conection with database */
         let connection = app.services.ConnectionFactory.connection();
 
@@ -41,6 +41,7 @@ module.exports = ( app ) => {
               });
               return;
             }
+            console.log('entered!');
             res.send(result);
 
             /* Creating a cache for the payament */
@@ -102,15 +103,18 @@ module.exports = ( app ) => {
 
           /* Creating a cache for the payament */
           new app.services.MemcachedFactory().setCache(payament.id, payament)
-          .then((result) => {
-            console.log(payament.id);
-            console.log('Cache of payament: ' + payament.id + ' created!');
-            payament.cache = 'TRUE';
-          })
-          .catch((err) => {
-            console.log(err);
-            payament.cache = 'FALSE';
-          });
+            .then((result) => {
+              console.log(payament.id);
+              console.log('Cache of payament: ' + payament.id + ' created!');
+              payament.cache = 'TRUE';
+            })
+            .catch((err) => {
+              
+              /* Saving error to a log file */
+              new app.services.LoggerFactory().log('error', err );
+              
+              payament.cache = 'FALSE';
+            });
 
           /* Authorizing the card */
           if ( payament.method == 'card' ) {
@@ -194,8 +198,11 @@ module.exports = ( app ) => {
         /* Returning an error if payament is not created */
         .catch( ( err ) => {
 
+          /* Saving error to a log file */
+          new app.services.LoggerFactory().log('error', err );
+
           /* Return an error if payament save is not successful */
-          res.status( 500 ).send( err );
+          res.status( 500 ).send({ message: 'Payament cannot be created!'});
 
         });
     }

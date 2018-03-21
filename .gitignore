@@ -1,5 +1,6 @@
 node_modules/
 util/**/*.jpg
 uploads/
+logs/
 package-lock.json
 .DS_Store

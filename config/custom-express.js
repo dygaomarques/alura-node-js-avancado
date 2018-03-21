@@ -1,7 +1,10 @@
 const express     = require('express');
 const consign     = require('consign');
 const bodyParser  = require('body-parser');
-const validate    = require( 'express-validator' );
+const validate    = require('express-validator');
+const morgan      = require('morgan');
+
+const LoggerFactory = require('../services/LoggerFactory.js')();
 
 module.exports = () => {
 
@@ -11,6 +14,13 @@ module.exports = () => {
   app.use( bodyParser.urlencoded({ extended: true }) );
   app.use( bodyParser.json() );
   app.use( validate() );
+  app.use( morgan('dev', {
+    stream: {
+      write: ( message ) => {
+        new LoggerFactory().log('info', message);
+      }
+    }
+  }) );
 
   consign()
     .include('controllers')
